@@ -33,6 +33,12 @@ def salvar_projeto(data, codigo, receita, depe, ressarcimento, doa, edit_id=None
             "doa": doa,
         })
 
+# Função para excluir projeto
+def excluir_projeto(projeto_id):
+    st.session_state.projetos = [
+        p for p in st.session_state.projetos if p["id"] != projeto_id
+    ]
+
 # Sidebar - cadastro
 st.sidebar.header("Novo Projeto")
 
@@ -57,13 +63,33 @@ with st.sidebar.form("cadastro"):
         else:
             salvar_projeto(str(data), codigo, receita, depe, ressarcimento, doa)
             st.success("Projeto salvo com sucesso!")
+            st.rerun()
 
 # Exibir tabela de projetos
 st.title("📊 Projetos Financeiros")
 
 if st.session_state.projetos:
     df = pd.DataFrame(st.session_state.projetos)
-    st.dataframe(df.drop(columns=["id"]), use_container_width=True)
+
+    # Cabeçalho da tabela
+    cols = st.columns([2, 2, 2, 2, 2, 2, 1])
+    headers = ["Data", "Código", "Receita", "DEPE", "Ressarcimento", "DOA", "Ação"]
+    for col, header in zip(cols, headers):
+        col.markdown(f"**{header}**")
+
+    # Linhas da tabela com botão excluir
+    for p in st.session_state.projetos:
+        col1, col2, col3, col4, col5, col6, col7 = st.columns([2, 2, 2, 2, 2, 2, 1])
+        col1.write(p["data"])
+        col2.write(p["codigo"])
+        col3.write(p["receita"])
+        col4.write(p["depe"])
+        col5.write(p["ressarcimento"])
+        col6.write(p["doa"])
+        if col7.button("🗑️", key=f"del_{p['id']}"):
+            excluir_projeto(p["id"])
+            st.success(f"Projeto {p['codigo']} excluído!")
+            st.rerun()
 
     # Totais
     st.subheader("Totais")
